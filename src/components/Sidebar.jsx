@@ -17,7 +17,7 @@ export default function Sidebar({ activeTab, setActiveTab }) {
   ];
 
   return (
-    <aside className="w-64 flex-shrink-0 hidden md:flex flex-col border-r border-slate-200/60 bg-transparent py-8 px-4 h-[calc(100vh-4rem)] sticky top-16">
+    <aside className="w-64 flex-shrink-0 hidden md:flex flex-col border-r border-slate-200/60 bg-transparent py-8 px-4">
       <nav className="flex-1 space-y-2.5">
         {navItems.map((item) => {
           const isActive = activeTab === item.name;
