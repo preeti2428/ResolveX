@@ -5,7 +5,6 @@ import { useAuth } from '@/context/AuthContext';
 import {
   GraduationCap,
   BookOpen,
-  ShieldCheck,
   ArrowRight,
   AlertCircle,
   Eye,
@@ -32,10 +31,7 @@ export default function LoginPage() {
   const [teacherPassword, setTeacherPassword] = useState('');
   const [showTeacherPass, setShowTeacherPass] = useState(false);
 
-  // 3. Admin Box (Empty by default)
-  const [adminEmail, setAdminEmail] = useState('');
-  const [adminPassword, setAdminPassword] = useState('');
-  const [showAdminPass, setShowAdminPass] = useState(false);
+
 
   const handleCrYearSelect = (year) => {
     setSelectedCrYear(year);
@@ -70,9 +66,6 @@ export default function LoginPage() {
     } else if (role === 'teacher') {
       emailToUse = teacherEmail.trim();
       passwordToUse = teacherPassword;
-    } else if (role === 'admin') {
-      emailToUse = adminEmail.trim();
-      passwordToUse = adminPassword;
     }
 
     if (!emailToUse || !passwordToUse) {
@@ -144,15 +137,6 @@ export default function LoginPage() {
             >
               <BookOpen size={13} />
               Faculty
-            </button>
-            <button
-              onClick={() => { setActiveTab('admin'); setErrorRole({ role: null, message: '' }); }}
-              className={`flex-1 py-1.5 text-[11px] font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 ${
-                activeTab === 'admin' ? 'bg-white text-[#C61A22] shadow-sm' : 'text-slate-500 hover:text-slate-700'
-              }`}
-            >
-              <ShieldCheck size={13} />
-              Admin
             </button>
           </div>
 
@@ -322,82 +306,6 @@ export default function LoginPage() {
                   className="bg-red-50 hover:bg-red-100 text-[#C61A22] font-semibold text-[10px] px-3 py-1 rounded-md transition-colors cursor-pointer"
                 >
                   Faculty Demo
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* ADMIN PORTAL CONTENT */}
-          {activeTab === 'admin' && (
-            <div className="animate-fade-in">
-              <div className="mb-4">
-                <h2 className="text-sm font-bold text-[#0F172A] leading-tight text-center">Admin Portal</h2>
-                <p className="text-[11px] font-medium text-[#64748B] text-center mt-0.5">HOD &amp; Redressal Cell</p>
-              </div>
-
-              {errorRole.role === 'admin' && (
-                <div className="mb-2.5 p-2 rounded-lg text-[11px] bg-red-50 text-red-700 border border-red-200 flex items-center gap-1.5">
-                  <AlertCircle size={13} className="shrink-0 text-red-600" />
-                  <span>{errorRole.message}</span>
-                </div>
-              )}
-
-              <form onSubmit={(e) => handleLoginSubmit(e, 'admin')} className="space-y-2.5">
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Mail size={14} className="text-slate-400" />
-                  </div>
-                  <input
-                    type="email"
-                    required
-                    value={adminEmail}
-                    onChange={(e) => setAdminEmail(e.target.value)}
-                    placeholder="Enter your email"
-                    className="w-full pl-9 pr-3 py-2 rounded-lg text-xs border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:border-[#C61A22] focus:ring-1 focus:ring-[#C61A22] outline-none transition-all shadow-sm"
-                  />
-                </div>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Lock size={14} className="text-slate-400" />
-                  </div>
-                  <input
-                    type={showAdminPass ? 'text' : 'password'}
-                    required
-                    value={adminPassword}
-                    onChange={(e) => setAdminPassword(e.target.value)}
-                    placeholder="Enter your password"
-                    className="w-full pl-9 pr-8 py-2 rounded-lg text-xs border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:border-[#C61A22] focus:ring-1 focus:ring-[#C61A22] outline-none transition-all font-mono shadow-sm"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowAdminPass(!showAdminPass)}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                  >
-                    {showAdminPass ? <EyeOff size={14} /> : <Eye size={14} />}
-                  </button>
-                </div>
-                <button
-                  type="submit"
-                  disabled={loadingRole === 'admin'}
-                  className="w-full mt-2 py-2 px-3 rounded-lg text-xs font-semibold text-white bg-[#C61A22] hover:bg-[#A8161D] active:bg-[#8B1218] transition-all flex items-center justify-center gap-1.5 shadow-md disabled:opacity-60 cursor-pointer"
-                >
-                  {loadingRole === 'admin' ? 'Signing in...' : 'Sign In as Admin'}
-                  {!loadingRole && <ArrowRight size={13} />}
-                </button>
-              </form>
-
-              <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px]">
-                <span className="text-[#64748B] font-medium text-[10px]">Quick Fill:</span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setAdminEmail('admin@aiml.edu');
-                    setAdminPassword('Admin@123');
-                    setErrorRole({ role: null, message: '' });
-                  }}
-                  className="bg-red-50 hover:bg-red-100 text-[#C61A22] font-semibold text-[10px] px-3 py-1 rounded-md transition-colors cursor-pointer"
-                >
-                  HOD Demo
                 </button>
               </div>
             </div>
