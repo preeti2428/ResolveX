@@ -289,21 +289,27 @@ export default function GrievanceFormModal({ isOpen, onClose, onGrievanceCreated
         details.issue_type = studentIssueType.trim();
       }
 
-      const formData = new FormData();
-      formData.append('category_id', selectedCategoryId);
-      formData.append('year', selectedYear);
-      formData.append('branch', selectedBranch);
-      formData.append('section', selectedSection);
-      formData.append('description', description.trim());
-      formData.append('details', JSON.stringify(details));
-
+      let attachment_url = null;
       if (attachment) {
-        formData.append('attachment', attachment);
+        attachment_url = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (e) => resolve(e.target.result);
+          reader.onerror = () => resolve(null);
+          reader.readAsDataURL(attachment);
+        });
       }
 
       const res = await apiRequest('/api/grievances', {
         method: 'POST',
-        body: formData,
+        body: JSON.stringify({
+          category_id: selectedCategoryId,
+          year: selectedYear,
+          branch: selectedBranch,
+          section: selectedSection,
+          description: description.trim(),
+          details,
+          attachment_url,
+        }),
       });
 
       if (res.success) {
