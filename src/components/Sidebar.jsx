@@ -3,8 +3,7 @@ import {
   LayoutDashboard,
   FileText,
   Megaphone,
-  User,
-  Settings
+  User
 } from 'lucide-react';
 
 export default function Sidebar({ activeTab, setActiveTab }) {
@@ -13,7 +12,6 @@ export default function Sidebar({ activeTab, setActiveTab }) {
     { name: 'Grievances', icon: FileText },
     { name: 'Announcements', icon: Megaphone },
     { name: 'My Profile', icon: User },
-    { name: 'Settings', icon: Settings },
   ];
 
   return (

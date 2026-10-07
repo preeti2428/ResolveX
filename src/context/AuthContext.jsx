@@ -88,8 +88,19 @@ export function AuthProvider({ children }) {
     setUser(null);
   };
 
+  const updateUser = (updatedData) => {
+    setUser((prev) => {
+      if (!prev) return prev;
+      const merged = { ...prev, ...updatedData };
+      try {
+        localStorage.setItem('resolvex_user', JSON.stringify(merged));
+      } catch {}
+      return merged;
+    });
+  };
+
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, loginWithGoogle, logout }}>
+    <AuthContext.Provider value={{ user, token, loading, login, loginWithGoogle, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

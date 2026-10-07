@@ -22,7 +22,8 @@ import {
   BarChart3,
   Pencil,
   Trash2,
-  ArrowRight
+  ArrowRight,
+  Camera
 } from 'lucide-react';
 
 export default function CRDashboard({ sidebarTab }) {
@@ -153,18 +154,18 @@ export default function CRDashboard({ sidebarTab }) {
                 <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-800">
                   Welcome back, <span className="text-[#C61A22]">{user?.name?.split(' (')[0]}</span>
                 </h1>
-                <p className="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed max-w-md">
+                <p className="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed max-w-md mb-4">
                   Official CR Portal for Year {user?.year || 1} Section {user?.section || 'A'} ({user?.branch || 'AIML'}). File issues, track resolutions, and manage announcements for your section.
                 </p>
-              </div>
-              <div className="flex flex-wrap items-center gap-3">
-                <button
-                  onClick={() => setIsFormOpen(true)}
-                  className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-xs font-bold text-white bg-[#C61A22] hover:bg-[#A8161D] transition-all shadow-md active:scale-95 shrink-0"
-                >
-                  <PlusCircle size={15} />
-                  Submit Grievance
-                </button>
+                <div>
+                  <button
+                    onClick={() => setIsFormOpen(true)}
+                    className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-xs font-bold text-white bg-[#C61A22] hover:bg-[#A8161D] transition-all shadow-md active:scale-95 shrink-0"
+                  >
+                    <PlusCircle size={15} />
+                    Submit Grievance
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -314,7 +315,6 @@ export default function CRDashboard({ sidebarTab }) {
               className="px-3 py-2 rounded-xl text-xs border border-slate-200 bg-slate-50 text-slate-800 outline-none focus:ring-2 focus:ring-red-500"
             >
               <option value="all">All Categories</option>
-              <option value="Faculty">Faculty</option>
               <option value="Classroom">Classroom</option>
               <option value="Labs">Labs</option>
             </select>
@@ -380,6 +380,11 @@ export default function CRDashboard({ sidebarTab }) {
                         {g.category_name}
                       </span>
                       <StatusBadge status={g.status} />
+                      {g.resolution_photo_url && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          <Camera size={11} /> Photo Proof
+                        </span>
+                      )}
                       <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-400">
                         <Clock size={12} />
                         {new Date(g.created_at).toLocaleDateString('en-US', {

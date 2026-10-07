@@ -132,9 +132,17 @@ export default function UserProfileModal({ isOpen, onClose }) {
 
           {/* User Profile Card */}
           <div className="flex items-center gap-4 p-4 rounded-2xl bg-[#FAF9F5] border border-[#D4A017]/30">
-            <div className="w-14 h-14 rounded-2xl bg-[#1B2A4A] text-[#D4A017] font-extrabold text-xl flex items-center justify-center shadow-md ring-4 ring-[#FAF3DE]">
-              {initials}
-            </div>
+            {user?.avatar_url ? (
+              <img
+                src={user.avatar_url}
+                alt="Profile"
+                className="w-14 h-14 rounded-2xl object-cover shadow-md ring-4 ring-[#FAF3DE]"
+              />
+            ) : (
+              <div className="w-14 h-14 rounded-2xl bg-[#1B2A4A] text-[#D4A017] font-extrabold text-xl flex items-center justify-center shadow-md ring-4 ring-[#FAF3DE]">
+                {initials}
+              </div>
+            )}
             <div>
               <h4 className="font-extrabold text-base text-[#1B2A4A]">
                 {(profile?.name || user?.name)?.split(' (')[0]}

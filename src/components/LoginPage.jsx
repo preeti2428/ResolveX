@@ -11,6 +11,8 @@ import {
   EyeOff,
   Mail,
   Lock,
+  Wrench,
+  Cpu,
 } from 'lucide-react';
 import { GoogleLogin } from '@react-oauth/google';
 
@@ -30,6 +32,16 @@ export default function LoginPage() {
   const [teacherEmail, setTeacherEmail] = useState('');
   const [teacherPassword, setTeacherPassword] = useState('');
   const [showTeacherPass, setShowTeacherPass] = useState(false);
+
+  // 3. Infra Head Box
+  const [infraEmail, setInfraEmail] = useState('');
+  const [infraPassword, setInfraPassword] = useState('');
+  const [showInfraPass, setShowInfraPass] = useState(false);
+
+  // 4. IT Infra Head Box
+  const [itEmail, setItEmail] = useState('');
+  const [itPassword, setItPassword] = useState('');
+  const [showItPass, setShowItPass] = useState(false);
 
 
 
@@ -66,6 +78,12 @@ export default function LoginPage() {
     } else if (role === 'teacher') {
       emailToUse = teacherEmail.trim();
       passwordToUse = teacherPassword;
+    } else if (role === 'infra_head') {
+      emailToUse = infraEmail.trim();
+      passwordToUse = infraPassword;
+    } else if (role === 'it_infra_head') {
+      emailToUse = itEmail.trim();
+      passwordToUse = itPassword;
     }
 
     if (!emailToUse || !passwordToUse) {
@@ -115,28 +133,50 @@ export default function LoginPage() {
       </header>
 
       {/* Single Compact Glass Card with Tabs */}
-      <main className="max-w-sm w-full mx-auto my-auto py-4 relative z-10">
+      <main className="max-w-md w-full mx-auto my-auto py-4 relative z-10">
         <div className="backdrop-blur-xl bg-white/95 rounded-2xl p-4 sm:p-5 shadow-xl border border-[#C61A22]/10 ring-1 ring-[#C61A22]/5 transition-all duration-300">
           
           {/* Role Selection Tabs */}
-          <div className="flex items-center p-1 bg-slate-100 rounded-xl mb-5">
+          <div className="grid grid-cols-4 p-1 bg-slate-100 rounded-xl mb-5 gap-1">
             <button
+              type="button"
               onClick={() => { setActiveTab('cr'); setErrorRole({ role: null, message: '' }); }}
-              className={`flex-1 py-1.5 text-[11px] font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 ${
+              className={`py-1.5 px-1 text-[11px] font-bold rounded-lg transition-all flex items-center justify-center gap-1 ${
                 activeTab === 'cr' ? 'bg-white text-[#C61A22] shadow-sm' : 'text-slate-500 hover:text-slate-700'
               }`}
             >
-              <GraduationCap size={13} />
-              CR
+              <GraduationCap size={13} className="shrink-0" />
+              <span>CR</span>
             </button>
             <button
+              type="button"
               onClick={() => { setActiveTab('teacher'); setErrorRole({ role: null, message: '' }); }}
-              className={`flex-1 py-1.5 text-[11px] font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 ${
+              className={`py-1.5 px-1 text-[11px] font-bold rounded-lg transition-all flex items-center justify-center gap-1 ${
                 activeTab === 'teacher' ? 'bg-white text-[#C61A22] shadow-sm' : 'text-slate-500 hover:text-slate-700'
               }`}
             >
-              <BookOpen size={13} />
-              Faculty
+              <BookOpen size={13} className="shrink-0" />
+              <span>Faculty</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => { setActiveTab('infra_head'); setErrorRole({ role: null, message: '' }); }}
+              className={`py-1.5 px-1 text-[10px] sm:text-[11px] font-bold rounded-lg transition-all flex items-center justify-center gap-1 ${
+                activeTab === 'infra_head' ? 'bg-white text-[#C61A22] shadow-sm' : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              <Wrench size={12} className="shrink-0" />
+              <span className="truncate">Infra</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => { setActiveTab('it_infra_head'); setErrorRole({ role: null, message: '' }); }}
+              className={`py-1.5 px-1 text-[10px] sm:text-[11px] font-bold rounded-lg transition-all flex items-center justify-center gap-1 ${
+                activeTab === 'it_infra_head' ? 'bg-white text-[#C61A22] shadow-sm' : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              <Cpu size={12} className="shrink-0" />
+              <span className="truncate">IT Head</span>
             </button>
           </div>
 
@@ -306,6 +346,158 @@ export default function LoginPage() {
                   className="bg-red-50 hover:bg-red-100 text-[#C61A22] font-semibold text-[10px] px-3 py-1 rounded-md transition-colors cursor-pointer"
                 >
                   Faculty Demo
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* INFRASTRUCTURE HEAD PORTAL CONTENT */}
+          {activeTab === 'infra_head' && (
+            <div className="animate-fade-in">
+              <div className="mb-4">
+                <h2 className="text-sm font-bold text-[#0F172A] leading-tight text-center">Campus Infrastructure Portal</h2>
+                <p className="text-[11px] font-medium text-[#64748B] text-center mt-0.5">Physical Maintenance, AC, Civil & Electrical</p>
+              </div>
+
+              {errorRole.role === 'infra_head' && (
+                <div className="mb-2.5 p-2 rounded-lg text-[11px] bg-red-50 text-red-700 border border-red-200 flex items-center gap-1.5">
+                  <AlertCircle size={13} className="shrink-0 text-red-600" />
+                  <span>{errorRole.message}</span>
+                </div>
+              )}
+
+              <form onSubmit={(e) => handleLoginSubmit(e, 'infra_head')} className="space-y-2.5">
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Mail size={14} className="text-slate-400" />
+                  </div>
+                  <input
+                    type="email"
+                    required
+                    value={infraEmail}
+                    onChange={(e) => setInfraEmail(e.target.value)}
+                    placeholder="infra@aiml.edu"
+                    className="w-full pl-9 pr-3 py-2 rounded-lg text-xs border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:border-[#C61A22] focus:ring-1 focus:ring-[#C61A22] outline-none transition-all shadow-sm"
+                  />
+                </div>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Lock size={14} className="text-slate-400" />
+                  </div>
+                  <input
+                    type={showInfraPass ? 'text' : 'password'}
+                    required
+                    value={infraPassword}
+                    onChange={(e) => setInfraPassword(e.target.value)}
+                    placeholder="Enter your password"
+                    className="w-full pl-9 pr-8 py-2 rounded-lg text-xs border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:border-[#C61A22] focus:ring-1 focus:ring-[#C61A22] outline-none transition-all font-mono shadow-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowInfraPass(!showInfraPass)}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  >
+                    {showInfraPass ? <EyeOff size={14} /> : <Eye size={14} />}
+                  </button>
+                </div>
+                <button
+                  type="submit"
+                  disabled={loadingRole === 'infra_head'}
+                  className="w-full mt-2 py-2 px-3 rounded-lg text-xs font-semibold text-white bg-[#C61A22] hover:bg-[#A8161D] active:bg-[#8B1218] transition-all flex items-center justify-center gap-1.5 shadow-md disabled:opacity-60 cursor-pointer"
+                >
+                  {loadingRole === 'infra_head' ? 'Signing in...' : 'Sign In as Infra Head'}
+                  {!loadingRole && <ArrowRight size={13} />}
+                </button>
+              </form>
+
+              <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                <span className="text-[#64748B] font-medium text-[10px]">Quick Fill:</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setInfraEmail('infra@aiml.edu');
+                    setInfraPassword('Infra@123');
+                    setErrorRole({ role: null, message: '' });
+                  }}
+                  className="bg-amber-50 hover:bg-amber-100 text-amber-900 font-semibold text-[10px] px-3 py-1 rounded-md transition-colors cursor-pointer border border-amber-200/60"
+                >
+                  Infra Head Demo
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* IT INFRASTRUCTURE HEAD PORTAL CONTENT */}
+          {activeTab === 'it_infra_head' && (
+            <div className="animate-fade-in">
+              <div className="mb-4">
+                <h2 className="text-sm font-bold text-[#0F172A] leading-tight text-center">IT Infrastructure Portal</h2>
+                <p className="text-[11px] font-medium text-[#64748B] text-center mt-0.5">Lab PCs, Wi-Fi, LAN, Projectors &amp; Systems</p>
+              </div>
+
+              {errorRole.role === 'it_infra_head' && (
+                <div className="mb-2.5 p-2 rounded-lg text-[11px] bg-red-50 text-red-700 border border-red-200 flex items-center gap-1.5">
+                  <AlertCircle size={13} className="shrink-0 text-red-600" />
+                  <span>{errorRole.message}</span>
+                </div>
+              )}
+
+              <form onSubmit={(e) => handleLoginSubmit(e, 'it_infra_head')} className="space-y-2.5">
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Mail size={14} className="text-slate-400" />
+                  </div>
+                  <input
+                    type="email"
+                    required
+                    value={itEmail}
+                    onChange={(e) => setItEmail(e.target.value)}
+                    placeholder="it_infra@aiml.edu"
+                    className="w-full pl-9 pr-3 py-2 rounded-lg text-xs border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:border-[#C61A22] focus:ring-1 focus:ring-[#C61A22] outline-none transition-all shadow-sm"
+                  />
+                </div>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Lock size={14} className="text-slate-400" />
+                  </div>
+                  <input
+                    type={showItPass ? 'text' : 'password'}
+                    required
+                    value={itPassword}
+                    onChange={(e) => setItPassword(e.target.value)}
+                    placeholder="Enter your password"
+                    className="w-full pl-9 pr-8 py-2 rounded-lg text-xs border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:border-[#C61A22] focus:ring-1 focus:ring-[#C61A22] outline-none transition-all font-mono shadow-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowItPass(!showItPass)}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  >
+                    {showItPass ? <EyeOff size={14} /> : <Eye size={14} />}
+                  </button>
+                </div>
+                <button
+                  type="submit"
+                  disabled={loadingRole === 'it_infra_head'}
+                  className="w-full mt-2 py-2 px-3 rounded-lg text-xs font-semibold text-white bg-[#C61A22] hover:bg-[#A8161D] active:bg-[#8B1218] transition-all flex items-center justify-center gap-1.5 shadow-md disabled:opacity-60 cursor-pointer"
+                >
+                  {loadingRole === 'it_infra_head' ? 'Signing in...' : 'Sign In as IT Head'}
+                  {!loadingRole && <ArrowRight size={13} />}
+                </button>
+              </form>
+
+              <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                <span className="text-[#64748B] font-medium text-[10px]">Quick Fill:</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setItEmail('it_infra@aiml.edu');
+                    setItPassword('ItInfra@123');
+                    setErrorRole({ role: null, message: '' });
+                  }}
+                  className="bg-indigo-50 hover:bg-indigo-100 text-indigo-900 font-semibold text-[10px] px-3 py-1 rounded-md transition-colors cursor-pointer border border-indigo-200/60"
+                >
+                  IT Head Demo
                 </button>
               </div>
             </div>

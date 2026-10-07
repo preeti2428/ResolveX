@@ -21,7 +21,8 @@ import {
   AlertCircle,
   BarChart3,
   Pencil,
-  Trash2
+  Trash2,
+  Camera
 } from 'lucide-react';
 
 export default function TeacherDashboard({ sidebarTab }) {
@@ -126,26 +127,26 @@ export default function TeacherDashboard({ sidebarTab }) {
         </div>
         <div className="absolute inset-0 bg-gradient-to-r from-red-50/60 to-transparent pointer-events-none" />
 
-        <div className="relative z-20 flex flex-col sm:flex-row sm:items-end justify-between gap-6 p-6 sm:p-8">
+        <div className="relative z-20 flex flex-col p-6 sm:p-8">
           <div className="space-y-2 max-w-xl">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-red-50 text-red-600 border border-red-200 shadow-sm">
-              <BookOpen size={14} /> Faculty Portal • Department of AIML
+              <BookOpen size={14} /> Faculty Portal • Department of AI / AI&ML
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-800">
               Welcome, <span className="text-[#C61A22]">{user?.name?.split(' (')[0]}</span>
             </h1>
-            <p className="text-sm text-slate-600 font-medium leading-relaxed max-w-md">
+            <p className="text-sm text-slate-600 font-medium leading-relaxed max-w-md mb-4">
               Report faculty cabin maintenance, lecture hall audiovisual problems, or department infrastructure needs directly for administrative action.
             </p>
-          </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <button
-              onClick={() => setIsFormOpen(true)}
-              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-xs font-bold text-white bg-[#C61A22] hover:bg-[#A8161D] transition-colors shadow-md shrink-0"
-            >
-              <PlusCircle size={15} />
-              Submit Grievance
-            </button>
+            <div>
+              <button
+                onClick={() => setIsFormOpen(true)}
+                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-xs font-bold text-white bg-[#C61A22] hover:bg-[#A8161D] transition-colors shadow-md shrink-0"
+              >
+                <PlusCircle size={15} />
+                Submit Grievance
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -297,6 +298,11 @@ export default function TeacherDashboard({ sidebarTab }) {
                         {g.category_name}
                       </span>
                       <StatusBadge status={g.status} />
+                      {g.resolution_photo_url && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          <Camera size={11} /> Photo Proof
+                        </span>
+                      )}
                       <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-400">
                         <Clock size={12} />
                         {new Date(g.created_at).toLocaleDateString('en-US', {

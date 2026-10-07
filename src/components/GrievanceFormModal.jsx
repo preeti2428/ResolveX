@@ -17,6 +17,31 @@ export const ALL_FLOORS = [
   '8th Floor',
 ];
 
+export const detectFloorFromRoom = (val) => {
+  if (!val || typeof val !== 'string') return null;
+  const trimmed = val.trim();
+  // Support explicit ground floor indications
+  if (/^g(?:round)?[\s-_]?\d*/i.test(trimmed)) {
+    return 'Ground Floor';
+  }
+  // Match first sequence of digits (e.g. '202' -> '2', 'CR-304' -> '3', 'H 801' -> '8')
+  const match = trimmed.match(/\d+/);
+  if (!match) return null;
+  const firstDigit = match[0].charAt(0);
+  const floorMap = {
+    '0': 'Ground Floor',
+    '1': '1st Floor',
+    '2': '2nd Floor',
+    '3': '3rd Floor',
+    '4': '4th Floor',
+    '5': '5th Floor',
+    '6': '6th Floor',
+    '7': '7th Floor',
+    '8': '8th Floor',
+  };
+  return floorMap[firstDigit] || null;
+};
+
 export const POPULAR_LAB_ROOMS = ['H 103', 'H 106', 'H 201', 'H 305', 'H 402', 'H 801'];
 
 export default function GrievanceFormModal({ isOpen, onClose, onGrievanceCreated }) {
@@ -36,10 +61,6 @@ export default function GrievanceFormModal({ isOpen, onClose, onGrievanceCreated
   const [error, setError] = useState('');
 
   // Category specific state fields
-  // Faculty
-  const [facultyName, setFacultyName] = useState('');
-  const [course, setCourse] = useState('');
-
   // Classroom
   const [roomNo, setRoomNo] = useState('');
   const [block, setBlock] = useState('H Block');
@@ -48,16 +69,16 @@ export default function GrievanceFormModal({ isOpen, onClose, onGrievanceCreated
   const [customClassroomIssueType, setCustomClassroomIssueType] = useState('');
 
   // Labs
-  const [labName, setLabName] = useState('Super Computing Lab');
-  const [customLabName, setCustomLabName] = useState('');
-  const [labRoomNo, setLabRoomNo] = useState('H 103');
-  const [labFloor, setLabFloor] = useState('1st Floor');
+  const [labName, setLabName] = useState('');
+  const [labRoomNo, setLabRoomNo] = useState('');
+  const [labFloor, setLabFloor] = useState('Ground Floor');
   const [systemNo, setSystemNo] = useState('');
-  const [labIssueType, setLabIssueType] = useState('GPU/Hardware');
+  const [labIssueType, setLabIssueType] = useState('');
 
   // Cabin
   const [cabinNo, setCabinNo] = useState('');
-  const [cabinIssueType, setCabinIssueType] = useState('Electrical');
+  const [cabinFloor, setCabinFloor] = useState('Ground Floor');
+  const [cabinIssueType, setCabinIssueType] = useState('');
 
   // Student Issue
   const [studentName, setStudentName] = useState('');
@@ -75,9 +96,18 @@ export default function GrievanceFormModal({ isOpen, onClose, onGrievanceCreated
     try {
       const res = await apiRequest('/api/categories');
       if (res.success && res.categories) {
-        setCategories(res.categories);
-        if (res.categories.length > 0) {
-          setSelectedCategoryId(res.categories[0].id || res.categories[0]._id);
+        // Exclude Faculty category
+        let availableCategories = res.categories.filter(
+          (c) => c.name.toLowerCase() !== 'faculty'
+        );
+        if (user?.role === 'teacher') {
+          availableCategories = availableCategories.filter(
+            (c) => c.name.toLowerCase() !== 'student issue'
+          );
+        }
+        setCategories(availableCategories);
+        if (availableCategories.length > 0) {
+          setSelectedCategoryId(availableCategories[0].id || availableCategories[0]._id);
         }
       }
     } catch (err) {
@@ -96,21 +126,19 @@ export default function GrievanceFormModal({ isOpen, onClose, onGrievanceCreated
     setVideoPreview(null);
     setIsDragging(false);
     setError('');
-    setFacultyName('');
-    setCourse('');
     setRoomNo('');
     setBlock('H Block');
     setFloor('Ground Floor');
     setClassroomIssueType('Projector/Display');
     setCustomClassroomIssueType('');
-    setLabName('Super Computing Lab');
-    setCustomLabName('');
-    setLabRoomNo('H 103');
-    setLabFloor('1st Floor');
+    setLabName('');
+    setLabRoomNo('');
+    setLabFloor('Ground Floor');
     setSystemNo('');
-    setLabIssueType('GPU/Hardware');
+    setLabIssueType('');
     setCabinNo('');
-    setCabinIssueType('Electrical');
+    setCabinFloor('Ground Floor');
+    setCabinIssueType('');
     setStudentName('');
     setStudentRollNo('');
     setStudentIssueType('Academic Performance');
@@ -233,25 +261,13 @@ export default function GrievanceFormModal({ isOpen, onClose, onGrievanceCreated
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!description.trim()) {
-      setError('Please provide a detailed description of the grievance.');
-      return;
-    }
-
     setSubmitting(true);
     setError('');
 
     try {
       const details = {};
 
-      if (currentCategory?.name === 'Faculty') {
-        if (!facultyName.trim() || !course.trim()) {
-          throw new Error('Please fill all required Faculty grievance fields.');
-        }
-        details.faculty_name = facultyName.trim();
-        details.course = course.trim();
-        details.section = selectedSection;
-      } else if (currentCategory?.name === 'Classroom') {
+      if (currentCategory?.name === 'Classroom') {
         const finalIssueType = classroomIssueType === 'Other' ? customClassroomIssueType : classroomIssueType;
         if (!roomNo.trim() || !floor.trim() || !finalIssueType.trim()) {
           throw new Error('Please fill all required Classroom grievance fields.');
@@ -261,11 +277,10 @@ export default function GrievanceFormModal({ isOpen, onClose, onGrievanceCreated
         details.floor = floor.trim();
         details.issue_type = finalIssueType.trim();
       } else if (currentCategory?.name === 'Labs') {
-        const finalLabName = labName === 'Other' ? customLabName : labName;
-        if (!finalLabName.trim() || !labIssueType.trim()) {
+        if (!labName.trim() || !labIssueType.trim()) {
           throw new Error('Please fill all required Laboratory grievance fields.');
         }
-        details.lab_name = finalLabName.trim();
+        details.lab_name = labName.trim();
         if (labRoomNo.trim()) {
           details.room_no = labRoomNo.trim();
         }
@@ -279,6 +294,7 @@ export default function GrievanceFormModal({ isOpen, onClose, onGrievanceCreated
           throw new Error('Please fill all required Faculty Cabin fields.');
         }
         details.cabin_no = cabinNo.trim();
+        details.floor = cabinFloor.trim();
         details.issue_type = cabinIssueType.trim();
       } else if (currentCategory?.name === 'Student Issue') {
         if (!studentName.trim() || !studentRollNo.trim() || !studentIssueType.trim()) {
@@ -383,42 +399,6 @@ export default function GrievanceFormModal({ isOpen, onClose, onGrievanceCreated
             </div>
           </div>
 
-          {/* Dynamic Fields: Faculty */}
-          {currentCategory?.name === 'Faculty' && (
-            <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/60 space-y-3.5">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
-                Faculty Issue Specifics
-              </h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                    Faculty Name *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Dr. Sharma"
-                    value={facultyName}
-                    onChange={(e) => setFacultyName(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                    Course / Subject *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Deep Learning / Data Structures"
-                    value={course}
-                    onChange={(e) => setCourse(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* Dynamic Fields: Classroom */}
           {currentCategory?.name === 'Classroom' && (
@@ -434,29 +414,28 @@ export default function GrievanceFormModal({ isOpen, onClose, onGrievanceCreated
                   <input
                     type="text"
                     required
-                    placeholder="e.g. CR-304 or Lecture Hall 2"
+                    placeholder="e.g. 202, CR-304, or 801"
                     value={roomNo}
-                    onChange={(e) => setRoomNo(e.target.value)}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setRoomNo(val);
+                      const autoFloor = detectFloorFromRoom(val);
+                      if (autoFloor) {
+                        setFloor(autoFloor);
+                      }
+                    }}
                     className="w-full px-3 py-2 rounded-lg text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none"
                   />
                 </div>
-                {user?.role !== 'cr' && (
-                  <div>
-                    <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                      Block *
-                    </label>
-                    <select
-                      value={block}
-                      onChange={(e) => setBlock(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none"
-                    >
-                      <option value="H Block">H Block (AIML Dept)</option>
-                    </select>
-                  </div>
-                )}
+
                 <div>
                   <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
                     Floor *
+                    {detectFloorFromRoom(roomNo) && (
+                      <span className="text-[11px] font-normal text-indigo-600 dark:text-indigo-400 ml-1.5">
+                        (auto-selected: {detectFloorFromRoom(roomNo)})
+                      </span>
+                    )}
                   </label>
                   <select
                     value={floor}
@@ -531,44 +510,14 @@ export default function GrievanceFormModal({ isOpen, onClose, onGrievanceCreated
                   <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
                     Lab Name *
                   </label>
-                  {labName !== 'Other' ? (
-                    <select
-                      value={labName}
-                      onChange={(e) => setLabName(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none"
-                    >
-                      <option value="Super Computing Lab">Super Computing Lab</option>
-                      <option value="Turing GPU Lab (Lab 4)">Turing GPU Lab (Lab 4)</option>
-                      <option value="Computer Vision Lab (Lab 2)">Computer Vision Lab (Lab 2)</option>
-                      <option value="NLP & Robotics Lab (Lab 5)">NLP & Robotics Lab (Lab 5)</option>
-                      <option value="General Computing Lab 1">General Computing Lab 1</option>
-                      <option value="AI Research & Deep Learning Lab">AI Research & Deep Learning Lab</option>
-                      <option value="Data Engineering Lab">Data Engineering Lab</option>
-                      <option value="Other">Other (Type manually)</option>
-                    </select>
-                  ) : (
-                    <div className="relative flex items-center">
-                      <input
-                        type="text"
-                        required
-                        autoFocus
-                        placeholder="Type Lab Name here..."
-                        value={customLabName}
-                        onChange={(e) => setCustomLabName(e.target.value)}
-                        className="w-full px-3 py-2 pr-14 rounded-lg text-sm border border-indigo-500 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setLabName('Super Computing Lab');
-                          setCustomLabName('');
-                        }}
-                        className="absolute right-2 text-xs font-semibold text-slate-500 hover:text-indigo-600 transition-colors"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  )}
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Super Computing Lab, AI Lab"
+                    value={labName}
+                    onChange={(e) => setLabName(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none"
+                  />
                 </div>
 
                 <div>
@@ -578,9 +527,16 @@ export default function GrievanceFormModal({ isOpen, onClose, onGrievanceCreated
                   <input
                     type="text"
                     required
-                    placeholder="e.g. H 103, H 106, H 204"
+                    placeholder="e.g. H 103, H 201, H 801"
                     value={labRoomNo}
-                    onChange={(e) => setLabRoomNo(e.target.value)}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setLabRoomNo(val);
+                      const autoFloor = detectFloorFromRoom(val);
+                      if (autoFloor) {
+                        setLabFloor(autoFloor);
+                      }
+                    }}
                     className="w-full px-3 py-2 rounded-lg text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none"
                   />
                 </div>
@@ -588,6 +544,11 @@ export default function GrievanceFormModal({ isOpen, onClose, onGrievanceCreated
                 <div>
                   <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
                     Floor *
+                    {detectFloorFromRoom(labRoomNo) && (
+                      <span className="text-[11px] font-normal text-indigo-600 dark:text-indigo-400 ml-1.5">
+                        (auto-selected: {detectFloorFromRoom(labRoomNo)})
+                      </span>
+                    )}
                   </label>
                   <select
                     value={labFloor}
@@ -619,18 +580,14 @@ export default function GrievanceFormModal({ isOpen, onClose, onGrievanceCreated
                   <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
                     Issue Category *
                   </label>
-                  <select
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. GPU crash, OS driver issue, LAN not working"
                     value={labIssueType}
                     onChange={(e) => setLabIssueType(e.target.value)}
                     className="w-full px-3 py-2 rounded-lg text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none"
-                  >
-                    <option value="GPU/Hardware">NVIDIA GPU / Crash / Memory / Thermal</option>
-                    <option value="Software/Python Env">PyTorch / CUDA / Conda / OS Drivers</option>
-                    <option value="Network/Internet">No LAN / Slow Network / Internet</option>
-                    <option value="Peripheral">Keyboard / Mouse / Monitor / Cables</option>
-                    <option value="Power">UPS / Power Backup / Plug Socket</option>
-                    <option value="Air Conditioning">Lab AC / Ventilation / Temperature</option>
-                  </select>
+                  />
                 </div>
               </div>
             </div>
@@ -650,27 +607,59 @@ export default function GrievanceFormModal({ isOpen, onClose, onGrievanceCreated
                   <input
                     type="text"
                     required
-                    placeholder="e.g. AIML-Faculty-Cabin 12"
+                    placeholder="e.g. 202 or H 304"
                     value={cabinNo}
-                    onChange={(e) => setCabinNo(e.target.value)}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setCabinNo(val);
+                      const autoFloor = detectFloorFromRoom(val);
+                      if (autoFloor) {
+                        setCabinFloor(autoFloor);
+                      }
+                    }}
                     className="w-full px-3 py-2 rounded-lg text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none"
                   />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                    Maintenance Issue *
+                    Floor *
+                    {detectFloorFromRoom(cabinNo) && (
+                      <span className="text-[11px] font-normal text-indigo-600 dark:text-indigo-400 ml-1.5">
+                        (auto-selected: {detectFloorFromRoom(cabinNo)})
+                      </span>
+                    )}
                   </label>
                   <select
-                    value={cabinIssueType}
-                    onChange={(e) => setCabinIssueType(e.target.value)}
+                    value={cabinFloor}
+                    onChange={(e) => setCabinFloor(e.target.value)}
                     className="w-full px-3 py-2 rounded-lg text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none"
                   >
-                    <option value="Electrical">Electrical / Switchboard</option>
-                    <option value="Furniture">Chair / Table Repair</option>
-                    <option value="Internet/Ethernet">Faculty LAN / Wi-Fi</option>
-                    <option value="Air Conditioning">AC Not Cooling / Water Leak</option>
-                    <option value="Sanitation">Housekeeping / Cleaning</option>
+                    {ALL_FLOORS.map((flr) => (
+                      <option key={flr} value={flr}>
+                        {flr}
+                      </option>
+                    ))}
                   </select>
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                    Maintenance Issue *
+                  </label>
+                  <input
+                    list="cabin-issues"
+                    value={cabinIssueType}
+                    onChange={(e) => setCabinIssueType(e.target.value)}
+                    placeholder="Select or type your issue..."
+                    className="w-full px-3 py-2 rounded-lg text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none"
+                    required
+                  />
+                  <datalist id="cabin-issues">
+                    <option value="Electrical / Switchboard" />
+                    <option value="Chair / Table Repair" />
+                    <option value="Faculty LAN / Wi-Fi" />
+                    <option value="AC Not Cooling / Water Leak" />
+                    <option value="Housekeeping / Cleaning" />
+                  </datalist>
                 </div>
               </div>
             </div>
@@ -732,12 +721,11 @@ export default function GrievanceFormModal({ isOpen, onClose, onGrievanceCreated
           {/* Description Textarea */}
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-2">
-              Detailed Description <span className="text-rose-500">*</span>
+              Detailed Description <span className="text-slate-400 font-normal lowercase tracking-normal">(optional)</span>
             </label>
             <textarea
-              required
               rows={4}
-              placeholder="Clearly state the issue, its frequency, and any urgent impact on lectures or practical labs..."
+              placeholder="Clearly state the issue, its frequency, and any urgent impact on lectures or practical labs (optional)..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               className="w-full px-3.5 py-2.5 rounded-xl text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none resize-none"
