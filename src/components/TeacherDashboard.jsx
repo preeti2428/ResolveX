@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { apiRequest } from '@/lib/api-client';
 import { useAuth } from '@/context/AuthContext';
 import StatusBadge from './StatusBadge';
@@ -37,6 +37,7 @@ export default function TeacherDashboard({ sidebarTab }) {
   // Filters & Search
   const [statusFilter, setStatusFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
+  const [issueTypeFilter, setIssueTypeFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
 
   // Modals
@@ -95,15 +96,27 @@ export default function TeacherDashboard({ sidebarTab }) {
     resolved: grievances.filter((g) => g.status === 'resolved').length,
   };
 
+  const availableIssueTypes = useMemo(() => {
+    const types = new Set();
+    grievances.forEach((g) => {
+      if (g.details?.issue_type) {
+        types.add(g.details.issue_type);
+      }
+    });
+    return Array.from(types).sort();
+  }, [grievances]);
+
   const filteredGrievances = grievances.filter((g) => {
     if (statusFilter !== 'all' && g.status !== statusFilter) return false;
     if (categoryFilter !== 'all' && g.category_name !== categoryFilter) return false;
+    if (issueTypeFilter !== 'all' && g.details?.issue_type !== issueTypeFilter) return false;
     if (searchQuery.trim()) {
       const term = searchQuery.toLowerCase();
       const matchDesc = g.description?.toLowerCase().includes(term);
       const matchCat = g.category_name?.toLowerCase().includes(term);
+      const matchIssue = g.details?.issue_type?.toLowerCase().includes(term);
       const matchDetails = JSON.stringify(g.details || {}).toLowerCase().includes(term);
-      if (!matchDesc && !matchCat && !matchDetails) return false;
+      if (!matchDesc && !matchCat && !matchIssue && !matchDetails) return false;
     }
     return true;
   });
@@ -244,6 +257,21 @@ export default function TeacherDashboard({ sidebarTab }) {
               <option value="Classroom">Classroom</option>
               <option value="Student Issue">Student Issue</option>
             </select>
+
+            {availableIssueTypes.length > 0 && (
+              <select
+                value={issueTypeFilter}
+                onChange={(e) => setIssueTypeFilter(e.target.value)}
+                className="px-3 py-1.5 rounded-xl text-xs font-medium border border-slate-200 bg-slate-50 text-slate-800 outline-none focus:ring-2 focus:ring-[#C61A22]"
+              >
+                <option value="all">All Issue Types</option>
+                {availableIssueTypes.map((type) => (
+                  <option key={type} value={type}>
+                    {type}
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
         </div>
 
@@ -293,7 +321,7 @@ export default function TeacherDashboard({ sidebarTab }) {
                   
                   {/* Content */}
                   <div className="space-y-1.5 max-w-3xl">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2.5 flex-wrap">
                       <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-red-50 text-red-600 border border-red-100">
                         {g.category_name}
                       </span>
@@ -312,11 +340,30 @@ export default function TeacherDashboard({ sidebarTab }) {
                         })}
                       </div>
                     </div>
-                    <p className="text-[14px] font-bold text-slate-800 line-clamp-1">
-                      {g.description}
-                    </p>
+
+                    <div className="flex items-center gap-2 flex-wrap pt-0.5">
+                      <p className="text-[14px] font-bold text-slate-800">
+                        {g.details?.issue_type || g.title || g.description || `${g.category_name} Issue`}
+                      </p>
+                      {(g.details?.room_no || g.details?.lab_name || g.details?.cabin_no || g.details?.student_name || (g.details?.system_no && g.details.system_no !== 'N/A')) && (
+                        <span className="text-[11px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md flex items-center gap-1">
+                          {g.details.lab_name && <span>{g.details.lab_name}</span>}
+                          {g.details.room_no && <span>{g.details.lab_name ? '• ' : ''}Room {g.details.room_no}</span>}
+                          {g.details.cabin_no && <span>Cabin {g.details.cabin_no}</span>}
+                          {g.details.student_name && <span>Student: {g.details.student_name}</span>}
+                          {g.details.system_no && g.details.system_no !== 'N/A' && <span>• Sys #{g.details.system_no}</span>}
+                          {g.details.floor && <span>• {g.details.floor}</span>}
+                        </span>
+                      )}
+                    </div>
+
+                    {g.description && g.description !== g.details?.issue_type && (
+                      <p className="text-xs text-slate-500 line-clamp-1">
+                        {g.description}
+                      </p>
+                    )}
                     {g.admin_notes && (
-                      <p className="text-xs text-slate-500 font-medium line-clamp-1">
+                      <p className="text-xs text-slate-600 font-medium line-clamp-1">
                         <span className="text-[#C61A22] font-bold">Remark:</span> {g.admin_notes}
                       </p>
                     )}

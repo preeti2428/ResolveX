@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { apiRequest } from '@/lib/api-client';
 import { useAuth } from '@/context/AuthContext';
 import StatusBadge from './StatusBadge';
@@ -38,6 +38,7 @@ export default function CRDashboard({ sidebarTab }) {
   // Filter & Search
   const [statusFilter, setStatusFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
+  const [issueTypeFilter, setIssueTypeFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
 
   // Modals
@@ -102,15 +103,27 @@ export default function CRDashboard({ sidebarTab }) {
     document.getElementById('grievances-list')?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  const availableIssueTypes = useMemo(() => {
+    const types = new Set();
+    grievances.forEach((g) => {
+      if (g.details?.issue_type) {
+        types.add(g.details.issue_type);
+      }
+    });
+    return Array.from(types).sort();
+  }, [grievances]);
+
   const filteredGrievances = grievances.filter((g) => {
     if (statusFilter !== 'all' && g.status !== statusFilter) return false;
     if (categoryFilter !== 'all' && g.category_name !== categoryFilter) return false;
+    if (issueTypeFilter !== 'all' && g.details?.issue_type !== issueTypeFilter) return false;
     if (searchQuery.trim()) {
       const term = searchQuery.toLowerCase();
       const matchDesc = g.description?.toLowerCase().includes(term);
       const matchCat = g.category_name?.toLowerCase().includes(term);
+      const matchIssue = g.details?.issue_type?.toLowerCase().includes(term);
       const matchDetails = JSON.stringify(g.details || {}).toLowerCase().includes(term);
-      if (!matchDesc && !matchCat && !matchDetails) return false;
+      if (!matchDesc && !matchCat && !matchIssue && !matchDetails) return false;
     }
     return true;
   });
@@ -319,6 +332,21 @@ export default function CRDashboard({ sidebarTab }) {
               <option value="Labs">Labs</option>
             </select>
 
+            {availableIssueTypes.length > 0 && (
+              <select
+                value={issueTypeFilter}
+                onChange={(e) => setIssueTypeFilter(e.target.value)}
+                className="px-3 py-2 rounded-xl text-xs border border-slate-200 bg-slate-50 text-slate-800 outline-none focus:ring-2 focus:ring-red-500"
+              >
+                <option value="all">All Issue Types</option>
+                {availableIssueTypes.map((type) => (
+                  <option key={type} value={type}>
+                    {type}
+                  </option>
+                ))}
+              </select>
+            )}
+
             <button
               onClick={() => setIsFormOpen(true)}
               className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white bg-[#C61A22] hover:bg-[#A8161D] transition-all shadow-sm shrink-0 ml-2"
@@ -375,7 +403,7 @@ export default function CRDashboard({ sidebarTab }) {
                   
                   {/* Content */}
                   <div className="space-y-1.5 max-w-3xl">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2.5 flex-wrap">
                       <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-red-50 text-red-600 border border-red-100">
                         {g.category_name}
                       </span>
@@ -394,16 +422,31 @@ export default function CRDashboard({ sidebarTab }) {
                         })}
                       </div>
                     </div>
-                    <p className="text-[14px] font-bold text-slate-800 line-clamp-1">
-                      {g.title || g.description}
-                    </p>
-                    {g.admin_notes ? (
-                      <p className="text-xs text-slate-500 font-medium line-clamp-1">
-                        <span className="text-[#C61A22] font-bold">Remark:</span> {g.admin_notes}
+
+                    <div className="flex items-center gap-2 flex-wrap pt-0.5">
+                      <p className="text-[14px] font-bold text-slate-800">
+                        {g.details?.issue_type || g.title || g.description || `${g.category_name} Issue`}
                       </p>
-                    ) : (
+                      {(g.details?.room_no || g.details?.lab_name || g.details?.cabin_no || g.details?.student_name || (g.details?.system_no && g.details.system_no !== 'N/A')) && (
+                        <span className="text-[11px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md flex items-center gap-1">
+                          {g.details.lab_name && <span>{g.details.lab_name}</span>}
+                          {g.details.room_no && <span>{g.details.lab_name ? '• ' : ''}Room {g.details.room_no}</span>}
+                          {g.details.cabin_no && <span>Cabin {g.details.cabin_no}</span>}
+                          {g.details.student_name && <span>Student: {g.details.student_name}</span>}
+                          {g.details.system_no && g.details.system_no !== 'N/A' && <span>• Sys #{g.details.system_no}</span>}
+                          {g.details.floor && <span>• {g.details.floor}</span>}
+                        </span>
+                      )}
+                    </div>
+
+                    {g.description && g.description !== g.details?.issue_type && (
                       <p className="text-xs text-slate-500 line-clamp-1">
                         {g.description}
+                      </p>
+                    )}
+                    {g.admin_notes && (
+                      <p className="text-xs text-slate-600 font-medium line-clamp-1">
+                        <span className="text-[#C61A22] font-bold">Remark:</span> {g.admin_notes}
                       </p>
                     )}
                   </div>
@@ -444,10 +487,6 @@ export default function CRDashboard({ sidebarTab }) {
                   <button className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold text-[#C61A22] hover:bg-red-50 transition-colors border border-transparent group-hover:border-red-100">
                     View Details
                     <ArrowRight size={14} className="text-[#C61A22]" />
-                  </button>
-                  
-                  <button className="text-slate-400 hover:text-slate-600 p-1">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
                   </button>
                 </div>
               </div>
