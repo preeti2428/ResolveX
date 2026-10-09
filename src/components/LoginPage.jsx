@@ -13,6 +13,7 @@ import {
   Lock,
   Wrench,
   Cpu,
+  Fan,
 } from 'lucide-react';
 import { GoogleLogin } from '@react-oauth/google';
 
@@ -42,6 +43,11 @@ export default function LoginPage() {
   const [itEmail, setItEmail] = useState('');
   const [itPassword, setItPassword] = useState('');
   const [showItPass, setShowItPass] = useState(false);
+
+  // 5. AC Incharge Box
+  const [acEmail, setAcEmail] = useState('');
+  const [acPassword, setAcPassword] = useState('');
+  const [showAcPass, setShowAcPass] = useState(false);
 
 
 
@@ -84,6 +90,9 @@ export default function LoginPage() {
     } else if (role === 'it_infra_head') {
       emailToUse = itEmail.trim();
       passwordToUse = itPassword;
+    } else if (role === 'ac_incharge') {
+      emailToUse = acEmail.trim();
+      passwordToUse = acPassword;
     }
 
     if (!emailToUse || !passwordToUse) {
@@ -137,11 +146,11 @@ export default function LoginPage() {
         <div className="backdrop-blur-xl bg-white/95 rounded-2xl p-4 sm:p-5 shadow-xl border border-[#C61A22]/10 ring-1 ring-[#C61A22]/5 transition-all duration-300">
           
           {/* Role Selection Tabs */}
-          <div className="grid grid-cols-4 p-1 bg-slate-100 rounded-xl mb-5 gap-1">
+          <div className="grid grid-cols-5 p-1 bg-slate-100 rounded-xl mb-5 gap-1">
             <button
               type="button"
               onClick={() => { setActiveTab('cr'); setErrorRole({ role: null, message: '' }); }}
-              className={`py-1.5 px-1 text-[11px] font-bold rounded-lg transition-all flex items-center justify-center gap-1 ${
+              className={`py-1.5 px-0.5 text-[10px] sm:text-[11px] font-bold rounded-lg transition-all flex items-center justify-center gap-1 ${
                 activeTab === 'cr' ? 'bg-white text-[#C61A22] shadow-sm' : 'text-slate-500 hover:text-slate-700'
               }`}
             >
@@ -151,7 +160,7 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={() => { setActiveTab('teacher'); setErrorRole({ role: null, message: '' }); }}
-              className={`py-1.5 px-1 text-[11px] font-bold rounded-lg transition-all flex items-center justify-center gap-1 ${
+              className={`py-1.5 px-0.5 text-[10px] sm:text-[11px] font-bold rounded-lg transition-all flex items-center justify-center gap-1 ${
                 activeTab === 'teacher' ? 'bg-white text-[#C61A22] shadow-sm' : 'text-slate-500 hover:text-slate-700'
               }`}
             >
@@ -161,7 +170,7 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={() => { setActiveTab('infra_head'); setErrorRole({ role: null, message: '' }); }}
-              className={`py-1.5 px-1 text-[10px] sm:text-[11px] font-bold rounded-lg transition-all flex items-center justify-center gap-1 ${
+              className={`py-1.5 px-0.5 text-[10px] sm:text-[11px] font-bold rounded-lg transition-all flex items-center justify-center gap-1 ${
                 activeTab === 'infra_head' ? 'bg-white text-[#C61A22] shadow-sm' : 'text-slate-500 hover:text-slate-700'
               }`}
             >
@@ -171,12 +180,22 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={() => { setActiveTab('it_infra_head'); setErrorRole({ role: null, message: '' }); }}
-              className={`py-1.5 px-1 text-[10px] sm:text-[11px] font-bold rounded-lg transition-all flex items-center justify-center gap-1 ${
+              className={`py-1.5 px-0.5 text-[10px] sm:text-[11px] font-bold rounded-lg transition-all flex items-center justify-center gap-1 ${
                 activeTab === 'it_infra_head' ? 'bg-white text-[#C61A22] shadow-sm' : 'text-slate-500 hover:text-slate-700'
               }`}
             >
               <Cpu size={12} className="shrink-0" />
               <span className="truncate">IT Head</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => { setActiveTab('ac_incharge'); setErrorRole({ role: null, message: '' }); }}
+              className={`py-1.5 px-0.5 text-[10px] sm:text-[11px] font-bold rounded-lg transition-all flex items-center justify-center gap-1 ${
+                activeTab === 'ac_incharge' ? 'bg-white text-[#C61A22] shadow-sm' : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              <Fan size={12} className="shrink-0" />
+              <span className="truncate">AC</span>
             </button>
           </div>
 
@@ -498,6 +517,82 @@ export default function LoginPage() {
                   className="bg-indigo-50 hover:bg-indigo-100 text-indigo-900 font-semibold text-[10px] px-3 py-1 rounded-md transition-colors cursor-pointer border border-indigo-200/60"
                 >
                   IT Head Demo
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* AC INCHARGE PORTAL CONTENT */}
+          {activeTab === 'ac_incharge' && (
+            <div className="animate-fade-in">
+              <div className="mb-4">
+                <h2 className="text-sm font-bold text-[#0F172A] leading-tight text-center">AC Incharge Portal</h2>
+                <p className="text-[11px] font-medium text-[#64748B] text-center mt-0.5">Air Conditioning, Ventilation &amp; Cooling Units</p>
+              </div>
+
+              {errorRole.role === 'ac_incharge' && (
+                <div className="mb-2.5 p-2 rounded-lg text-[11px] bg-red-50 text-red-700 border border-red-200 flex items-center gap-1.5">
+                  <AlertCircle size={13} className="shrink-0 text-red-600" />
+                  <span>{errorRole.message}</span>
+                </div>
+              )}
+
+              <form onSubmit={(e) => handleLoginSubmit(e, 'ac_incharge')} className="space-y-2.5">
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Mail size={14} className="text-slate-400" />
+                  </div>
+                  <input
+                    type="email"
+                    required
+                    value={acEmail}
+                    onChange={(e) => setAcEmail(e.target.value)}
+                    placeholder="ac_incharge@aiml.edu"
+                    className="w-full pl-9 pr-3 py-2 rounded-lg text-xs border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:border-[#C61A22] focus:ring-1 focus:ring-[#C61A22] outline-none transition-all shadow-sm"
+                  />
+                </div>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Lock size={14} className="text-slate-400" />
+                  </div>
+                  <input
+                    type={showAcPass ? 'text' : 'password'}
+                    required
+                    value={acPassword}
+                    onChange={(e) => setAcPassword(e.target.value)}
+                    placeholder="Enter your password"
+                    className="w-full pl-9 pr-8 py-2 rounded-lg text-xs border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:border-[#C61A22] focus:ring-1 focus:ring-[#C61A22] outline-none transition-all font-mono shadow-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowAcPass(!showAcPass)}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                  >
+                    {showAcPass ? <EyeOff size={14} /> : <Eye size={14} />}
+                  </button>
+                </div>
+                <button
+                  type="submit"
+                  disabled={loadingRole === 'ac_incharge'}
+                  className="w-full mt-2 py-2 px-3 rounded-lg text-xs font-semibold text-white bg-[#C61A22] hover:bg-[#A8161D] active:bg-[#8B1218] transition-all flex items-center justify-center gap-1.5 shadow-md disabled:opacity-60 cursor-pointer"
+                >
+                  {loadingRole === 'ac_incharge' ? 'Signing in...' : 'Sign In as AC Incharge'}
+                  {!loadingRole && <ArrowRight size={13} />}
+                </button>
+              </form>
+
+              <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                <span className="text-[#64748B] font-medium text-[10px]">Quick Fill:</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAcEmail('ac_incharge@aiml.edu');
+                    setAcPassword('AcIncharge@123');
+                    setErrorRole({ role: null, message: '' });
+                  }}
+                  className="bg-cyan-50 hover:bg-cyan-100 text-cyan-900 font-semibold text-[10px] px-3 py-1 rounded-md transition-colors cursor-pointer border border-cyan-200/60"
+                >
+                  AC Incharge Demo
                 </button>
               </div>
             </div>

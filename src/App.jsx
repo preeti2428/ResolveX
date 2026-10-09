@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { apiRequest } from '@/lib/api-client';
@@ -216,6 +216,8 @@ function MyProfileView() {
                 ? 'Campus Infrastructure Head'
                 : user.role === 'it_infra_head'
                 ? 'IT Systems & Infrastructure Head'
+                : user.role === 'ac_incharge'
+                ? 'AC Incharge'
                 : 'System Admin'}
             </p>
           </div>
@@ -228,6 +230,16 @@ function MyProfileView() {
 function DashboardRouter() {
   const { user, loading } = useAuth();
   const [activeTab, setActiveTab] = useState('Dashboard');
+  const prevUserIdRef = useRef(user?._id || user?.id);
+
+  // Always reset to Dashboard page whenever user logs out or signs in with any role
+  useEffect(() => {
+    const currentId = user?._id || user?.id;
+    if (!user || currentId !== prevUserIdRef.current) {
+      setActiveTab('Dashboard');
+    }
+    prevUserIdRef.current = currentId;
+  }, [user]);
 
   if (loading) {
     return (
@@ -254,7 +266,7 @@ function DashboardRouter() {
       case 'Grievances':
         return (
           <>
-            {(user.role === 'admin' || user.role === 'infra_head' || user.role === 'it_infra_head') && (
+            {(user.role === 'admin' || user.role === 'infra_head' || user.role === 'it_infra_head' || user.role === 'ac_incharge') && (
               <AdminDashboard sidebarTab={activeTab} />
             )}
             {user.role === 'teacher' && <TeacherDashboard sidebarTab={activeTab} />}
@@ -273,7 +285,7 @@ function DashboardRouter() {
       default:
         return (
           <>
-            {(user.role === 'admin' || user.role === 'infra_head' || user.role === 'it_infra_head') && (
+            {(user.role === 'admin' || user.role === 'infra_head' || user.role === 'it_infra_head' || user.role === 'ac_incharge') && (
               <AdminDashboard sidebarTab={activeTab} />
             )}
             {user.role === 'teacher' && <TeacherDashboard sidebarTab={activeTab} />}

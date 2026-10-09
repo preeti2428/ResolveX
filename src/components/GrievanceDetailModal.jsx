@@ -377,8 +377,8 @@ export default function GrievanceDetailModal({ grievanceId, onClose, onStatusUpd
                 </div>
               )}
 
-              {/* Resolution Form Controls for Admin, Infra Head & IT Head */}
-              {(user?.role === 'admin' || user?.role === 'infra_head' || user?.role === 'it_infra_head') && (
+              {/* Resolution Form Controls for Admin, Infra Head, IT Head & AC Incharge */}
+              {(user?.role === 'admin' || user?.role === 'infra_head' || user?.role === 'it_infra_head' || user?.role === 'ac_incharge') && (
                 <form
                   onSubmit={handleStatusUpdate}
                   className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/80 space-y-4"
@@ -390,6 +390,8 @@ export default function GrievanceDetailModal({ grievanceId, onClose, onStatusUpd
                         ? 'Campus Infrastructure Action & Resolution'
                         : user?.role === 'it_infra_head'
                         ? 'IT Infrastructure Action & Resolution'
+                        : user?.role === 'ac_incharge'
+                        ? 'Air Conditioning & HVAC Action & Resolution'
                         : 'Department HOD / Governance Action'}
                     </h4>
                   </div>
